@@ -3,7 +3,6 @@ import { Send, Disc as Discord, ArrowRight, Twitter, Linkedin, Github } from 'lu
 import AnimationBackground from './components/AnimationBackground';
 import InitialAnimation from './components/InitialAnimation';
 import Modal from './components/Modal';
-import DebugPanel from './components/DebugPanel';
 import { addSubscriber, getEvents, getSiteContent } from './services/airtable';
 
 // Types
@@ -28,8 +27,6 @@ interface SiteContent {
 }
 
 function App() {
-  console.log('App component rendering');
-  
   const [showContent, setShowContent] = useState(false);
   const [email, setEmail] = useState('');
   const [events, setEvents] = useState<Event[]>([]);
@@ -39,13 +36,11 @@ function App() {
   const [showTerms, setShowTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showDebugPanel, setShowDebugPanel] = useState(true);
 
   // Fetch events and site content on load
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log('Fetching data from Airtable...');
         setIsLoading(true);
         
         const [eventsResult, contentResult] = await Promise.all([
@@ -54,10 +49,8 @@ function App() {
         ]);
         
         if (eventsResult.success && eventsResult.data) {
-          console.log('Successfully loaded events:', eventsResult.data.length);
           setEvents(eventsResult.data as Event[]);
         } else {
-          console.warn('Failed to load events:', eventsResult.error);
           // Use fallback data if provided
           if (eventsResult.data) {
             setEvents(eventsResult.data as Event[]);
@@ -65,10 +58,8 @@ function App() {
         }
         
         if (contentResult.success && contentResult.data) {
-          console.log('Successfully loaded site content');
           setSiteContent(contentResult.data as Partial<SiteContent>);
         } else {
-          console.warn('Failed to load site content:', contentResult.error);
           // Use fallback data if provided
           if (contentResult.data) {
             setSiteContent(contentResult.data as Partial<SiteContent>);
@@ -86,25 +77,18 @@ function App() {
     fetchData();
   }, []);
 
-  // Toggle debug panel with 'd' key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'd' && e.ctrlKey) {
-        setShowDebugPanel(prev => !prev);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
   // Handle email submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormStatus(null);
     
     try {
-      console.log('Submitting email:', email);
+      // Show a processing message
+      setFormStatus({
+        message: 'Processing...',
+        isError: false
+      });
+      
       const result = await addSubscriber(email);
       
       if (result.success) {
@@ -117,7 +101,7 @@ function App() {
         setFormStatus({
           message: result.error === 'Email already exists' 
             ? 'You are already subscribed!' 
-            : 'Unable to subscribe. Please try again.',
+            : result.message || 'Unable to subscribe. Please try again.',
           isError: true
         });
       }
@@ -272,7 +256,7 @@ function App() {
               </ul>
               <a 
                 href={siteContent.discord_link || "https://discord.gg/example"}
-                className="wave-button glow bg-[#5865F2] text-white px-8 py-3 rounded-lg text-xl font-semibold flex items-center gap-2 mx-auto"
+                className="wave-button glow bg-[#5865F2] text-white px-8 py-3 rounded-lg text-xl font-semibold flex items-center justify-center gap-2 mx-auto"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -378,15 +362,6 @@ function App() {
         </div>
       </Modal>
 
-      {/* Debug Panel (press Ctrl+D to toggle) */}
-      {showDebugPanel && (
-        <DebugPanel 
-          apiKey={import.meta.env.VITE_AIRTABLE_API_KEY || ''}
-          accessToken={import.meta.env.VITE_AIRTABLE_ACCESS_TOKEN || ''}
-          baseId={import.meta.env.VITE_AIRTABLE_BASE_ID || ''}
-          eventsTable={import.meta.env.VITE_AIRTABLE_EVENTS_TABLE || 'Events'}
-        />
-      )}
     </>
   );
 }
