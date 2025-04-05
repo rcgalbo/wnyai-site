@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #00a8ff;
+  --secondary: #9c1de7;
+  --accent: #2ed573;
+  --background: #1a1a1a;
+}
+
+body {
+  background-color: #f4f4f4;
+  color: #1a1a1a;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+.font-heading {
+  font-family: 'Syne', sans-serif;
+}
+
+.animation-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+}
+
+.glow {
+  box-shadow: 0 0 15px rgba(0, 168, 255, 0.3);
+}
+
+.glow:hover {
+  box-shadow: 0 0 30px rgba(0, 168, 255, 0.5);
+}
+
+.wave-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.wave-button:hover::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300%;
+  height: 300%;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
+  transform: translate(-50%, -50%);
+  animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+  from {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
