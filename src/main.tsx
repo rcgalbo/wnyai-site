@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import Debug from './Debug.tsx';
 import './index.css';
@@ -13,7 +14,9 @@ const isDebugMode = providedPassword === debugPassword;
 try {
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      {isDebugMode ? <Debug /> : <App />}
+      <BrowserRouter>
+        {isDebugMode ? <Debug /> : <App />}
+      </BrowserRouter>
     </StrictMode>
   );
 } catch (error) {

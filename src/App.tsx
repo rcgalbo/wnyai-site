@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { Send, Disc as Discord, ArrowRight, Twitter, Linkedin, Github } from 'lucide-react';
 import AnimationBackground from './components/AnimationBackground';
 import InitialAnimation from './components/InitialAnimation';
 import Modal from './components/Modal';
+import Header from './components/Header';
+import Conference from './pages/Conference';
 import { addSubscriber, getEvents, getSiteContent } from './services/airtable';
 
 // Types
@@ -26,7 +29,8 @@ interface SiteContent {
   terms_of_service: string;
 }
 
-function App() {
+// HomePage component (existing site)
+function HomePage() {
   const [showContent, setShowContent] = useState(false);
   const [email, setEmail] = useState('');
   const [events, setEvents] = useState<Event[]>([]);
@@ -362,6 +366,19 @@ function App() {
         </div>
       </Modal>
 
+    </>
+  );
+}
+
+// Main App component with routing
+function App() {
+  return (
+    <>
+      <Header />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/conference" element={<Conference />} />
+      </Routes>
     </>
   );
 }

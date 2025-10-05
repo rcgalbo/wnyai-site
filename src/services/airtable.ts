@@ -37,13 +37,53 @@ try {
 const subscribersTableName = import.meta.env.VITE_AIRTABLE_SUBSCRIBERS_TABLE || 'Subscribers';
 const eventsTableName = import.meta.env.VITE_AIRTABLE_EVENTS_TABLE || 'Events';
 const contentTableName = import.meta.env.VITE_AIRTABLE_CONTENT_TABLE || 'Site Content';
+const scheduleTableName = import.meta.env.VITE_AIRTABLE_SCHEDULE_TABLE || 'Conference Schedule';
 
 // Tables
 const subscribersTable = base(subscribersTableName);
 const eventsTable = base(eventsTableName);
 const contentTable = base(contentTableName);
+const scheduleTable = base(scheduleTableName);
 
 // No test connection in production
+
+// Function to add conference registration
+export const addConferenceRegistration = async (data: {
+  name: string;
+  email: string;
+  phone: string;
+  jobTitle: string;
+}) => {
+  try {
+    // Use the Conf Registration table
+    const registrationsTable = base(import.meta.env.VITE_AIRTABLE_REGISTRATIONS_TABLE || 'Conf Registration');
+
+    // Try to create the record
+    // Format date as YYYY-MM-DD for Airtable date field
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+
+    const result = await registrationsTable.create([{
+      fields: {
+        'Name': data.name,
+        'Email': data.email,
+        'Phone': data.phone,
+        'Job Title': data.jobTitle,
+        'Registration Date': formattedDate,
+        'Status': 'Registered'
+      }
+    }]);
+
+    return { success: true, data: result };
+  } catch (error: any) {
+    console.error('Registration error:', error);
+    return {
+      success: false,
+      error: error.message || 'Unknown error',
+      message: 'Unable to complete registration. Please try again or contact us directly.'
+    };
+  }
+};
 
 // Function to add a new subscriber
 export const addSubscriber = async (email: string, name?: string) => {
@@ -229,7 +269,7 @@ export const getEvents = async (featured = false) => {
 export const getSiteContent = async () => {
   try {
     const records = await contentTable.select().all();
-    
+
     // Convert to key-value object
     const content = records.reduce((acc, record) => {
       try {
@@ -243,11 +283,11 @@ export const getSiteContent = async () => {
         return acc;
       }
     }, {} as Record<string, string>);
-    
+
     return { success: true, data: content };
   } catch (error) {
-    return { 
-      success: false, 
+    return {
+      success: false,
       error,
       // Provide fallback data for development/testing
       data: {
@@ -258,6 +298,104 @@ export const getSiteContent = async () => {
         privacy_policy: 'This is a fallback privacy policy.',
         terms_of_service: 'These are fallback terms of service.',
       }
+    };
+  }
+};
+
+// Function to get conference schedule
+export const getConferenceSchedule = async () => {
+  try {
+    const records = await scheduleTable.select({
+      sort: [{ field: 'Time', direction: 'asc' }],
+    }).all();
+
+    return {
+      success: true,
+      data: records.map(record => {
+        try {
+          return {
+            id: record.id,
+            time: record.get('Time') || record.fields['Time'] || 'TBA',
+            title: record.get('Title') || record.fields['Title'] || 'Untitled Session',
+            description: record.get('Description') || record.fields['Description'] || '',
+            speaker: record.get('Speaker') || record.fields['Speaker'],
+          };
+        } catch (err) {
+          return {
+            id: record.id,
+            time: 'Error',
+            title: 'Error parsing schedule item',
+            description: 'There was an error parsing this schedule item from Airtable',
+          };
+        }
+      }),
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error,
+      // Provide fallback data for development/testing
+      data: [
+        {
+          id: 'fallback1',
+          time: '8:00 AM',
+          title: 'Registration & Breakfast',
+          description: 'Check-in and networking breakfast'
+        },
+        {
+          id: 'fallback2',
+          time: '9:00 AM',
+          title: 'Opening Keynote',
+          description: 'The Future of AI in Western New York',
+          speaker: 'TBA'
+        },
+        {
+          id: 'fallback3',
+          time: '10:00 AM',
+          title: 'AI in Healthcare',
+          description: 'Panel discussion on AI applications in medical field',
+          speaker: 'Industry Experts'
+        },
+        {
+          id: 'fallback4',
+          time: '11:00 AM',
+          title: 'Networking Break',
+          description: 'Connect with fellow attendees and sponsors'
+        },
+        {
+          id: 'fallback5',
+          time: '11:30 AM',
+          title: 'AI for Small Business',
+          description: 'Practical AI tools and strategies for local businesses',
+          speaker: 'TBA'
+        },
+        {
+          id: 'fallback6',
+          time: '12:30 PM',
+          title: 'Lunch & Networking',
+          description: 'Catered lunch with networking opportunities'
+        },
+        {
+          id: 'fallback7',
+          time: '2:00 PM',
+          title: 'AI Ethics & Governance',
+          description: 'Responsible AI development and deployment',
+          speaker: 'TBA'
+        },
+        {
+          id: 'fallback8',
+          time: '3:00 PM',
+          title: 'Hands-on Workshops',
+          description: 'Interactive sessions on AI tools and frameworks',
+          speaker: 'Multiple tracks'
+        },
+        {
+          id: 'fallback9',
+          time: '4:30 PM',
+          title: 'Closing Remarks & Networking',
+          description: 'Final thoughts and continued networking'
+        }
+      ]
     };
   }
 };
